@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pesticide Recommendation</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+
+<div class="row justify-content-center">
+
+<div class="col-lg-8">
+
+<div class="card shadow">
+
+<div class="card-header bg-success text-white text-center">
+
+<h2>
+
+💊 Pesticide Recommendation System
+
+</h2>
+
+</div>
+
+<div class="card-body">
+
+<form action="{% url 'recommend_pesticide' %}" method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Select Crop
+
+</label>
+
+<select class="form-select" name="crop" required>
+
+<option value="">Choose Crop</option>
+
+{% for crop in crop_list %}
+
+<option value="{{ crop }}">{{ crop|title }}</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Select Pest
+
+</label>
+
+<select class="form-select" name="pest" required>
+
+<option value="">Choose Pest</option>
+
+{% for pest in pest_list %}
+
+<option value="{{ pest }}">{{ pest|title }}</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<button class="btn btn-success w-100">
+
+Get Recommendation
+
+</button>
+
+</form>
+
+<hr>
+{% if pesticide %}
+
+<div class="card mt-4 border-success shadow">
+
+    <div class="card-header bg-success text-white">
+
+        <h3 class="text-center">
+
+            🌱 Recommended Pesticide
+
+        </h3>
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-bordered table-striped">
+
+            <tr>
+
+                <th width="35%">🌾 Crop</th>
+
+                <td>{{ selected_crop }}</td>
+
+            </tr>
+
+            <tr>
+
+                <th>🐛 Pest</th>
+
+                <td>{{ selected_pest }}</td>
+
+            </tr>
+
+            <tr>
+
+                <th>💊 Recommended Pesticide</th>
+
+                <td>{{ pesticide }}</td>
+
+            </tr>
+
+            <tr>
+
+                <th>📏 Dosage</th>
+
+                <td>{{ dosage }}</td>
+
+            </tr>
+
+            <tr>
+
+                <th>⏰ Spray Time</th>
+
+                <td>{{ spray_time }}</td>
+
+            </tr>
+
+            <tr>
+
+                <th>🌿 Organic Alternative</th>
+
+                <td>{{ organic }}</td>
+
+            </tr>
+
+            <tr>
+
+                <th>⚠️ Safety Precautions</th>
+
+                <td>{{ precaution }}</td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+{% if error %}
+
+<div class="alert alert-danger mt-4">
+
+    {{ error }}
+
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

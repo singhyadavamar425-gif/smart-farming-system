@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart Advisory Report</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<div class="card shadow-lg">
+
+<div class="card-header bg-success text-white text-center">
+
+<h2>
+
+🌾 Smart Advisory Report
+
+</h2>
+
+</div>
+
+<div class="card-body">
+    <!-- Crop Recommendation -->
+
+<h4 class="text-success mt-3">🌾 Crop Recommendation</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th width="30%">Recommended Crop</th>
+        <td>{{ crop }}</td>
+    </tr>
+    <tr>
+        <th>Confidence</th>
+        <td>{{ confidence }}</td>
+    </tr>
+    <tr>
+        <th>Soil Type</th>
+        <td>{{ soil }}</td>
+    </tr>
+    <tr>
+        <th>Fertilizer</th>
+        <td>{{ fertilizer }}</td>
+    </tr>
+    <tr>
+        <th>Required GDD</th>
+        <td>{{ gdd }}</td>
+    </tr>
+</table>
+
+<hr>
+
+<!-- Weed Detection -->
+
+<h4 class="text-success">🌿 Weed Detection</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th width="30%">Detected Weed</th>
+        <td>{{ weed }}</td>
+    </tr>
+    <tr>
+        <th>Confidence</th>
+        <td>{{ weed_confidence }}</td>
+    </tr>
+</table>
+
+<hr>
+
+<!-- Pest Detection -->
+
+<h4 class="text-success">🐛 Pest Detection</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th width="30%">Detected Pest</th>
+        <td>{{ pest }}</td>
+    </tr>
+    <tr>
+        <th>Confidence</th>
+        <td>{{ pest_confidence }}</td>
+    </tr>
+</table>
+
+<hr>
+
+<!-- Pesticide Recommendation -->
+
+<h4 class="text-success">💊 Pesticide Recommendation</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th width="30%">Recommended Pesticide</th>
+        <td>{{ pesticide }}</td>
+    </tr>
+    <tr>
+        <th>Dosage</th>
+        <td>{{ dosage }}</td>
+    </tr>
+    <tr>
+        <th>Spray Time</th>
+        <td>{{ spray_time }}</td>
+    </tr>
+    <tr>
+        <th>Organic Alternative</th>
+        <td>{{ organic }}</td>
+    </tr>
+</table>
+
+<hr>
+
+<!-- Cost Estimation -->
+
+<h4 class="text-success">💰 Cost Estimation</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th width="30%">Seed Cost</th>
+        <td>₹ {{ seed_cost }}</td>
+    </tr>
+    <tr>
+        <th>Fertilizer Cost</th>
+        <td>₹ {{ fertilizer_cost }}</td>
+    </tr>
+    <tr>
+        <th>Irrigation Cost</th>
+        <td>₹ {{ irrigation_cost }}</td>
+    </tr>
+    <tr>
+        <th>Labour Cost</th>
+        <td>₹ {{ labour_cost }}</td>
+    </tr>
+    <tr>
+        <th>Machinery Cost</th>
+        <td>₹ {{ machinery_cost }}</td>
+    </tr>
+    <tr class="table-success">
+        <th>Total Cost</th>
+        <th>₹ {{ total_cost }}</th>
+    </tr>
+</table>
+
+<hr>
+
+<div class="alert alert-success">
+
+    <h4>📋 Smart Advisory Summary</h4>
+
+    <p>
+        Recommended Crop:
+        <strong>{{ crop }}</strong><br>
+
+        Weed Detected:
+        <strong>{{ weed }}</strong><br>
+
+        Pest Detected:
+        <strong>{{ pest }}</strong><br>
+
+        Recommended Pesticide:
+        <strong>{{ pesticide }}</strong><br>
+
+        Estimated Cost:
+        <strong>₹ {{ total_cost }}</strong>
+    </p>
+
+</div>
+
+<div class="text-center mb-3">
+
+    <button class="btn btn-primary" onclick="window.print()">
+
+        🖨️ Print Report
+
+    </button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
