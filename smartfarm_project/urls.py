@@ -12,8 +12,7 @@ urlpatterns = [
     path('pesticide/', include('pesticide_recommendation.urls')),
     path('cost/', include('cost_estimation.urls')),
     path('advisory/', include('advisory.urls')),
-    path('weather/', include('live_weather.urls')),
+    path('weather/', include('live_weather.urls')),  # Live weather linked
 ]
 
-# Production & Development par uploaded images serve karne ke liye:
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
