@@ -23,9 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&c7s1vfz!a(0hhr8k^!u1_!il*4ybuu^d_l&mzocc^$^y2+dto'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Production par DEBUG false hona chahiye
+DEBUG = False
 
-ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1"]
+# Render ke URL aur local testing dono allow karne ke liye
+ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1", "*"]
 
 
 # Application definition
@@ -56,8 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files serve karne ke liye zaroori hai
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,10 +66,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'smartfarm_project.urls'
 
 TEMPLATES = [
+
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
@@ -131,14 +132,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+# Warning fix: Agar root me 'static' folder nahi bhi hai, toh ye crash nahi hone dega
+STATIC_DIR = BASE_DIR / "static"
+if STATIC_DIR.exists():
+    STATICFILES_DIRS = [STATIC_DIR]
+else:
+    STATICFILES_DIRS = []
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Render par missing file ki wajeh se build break na ho isliye CompressedStaticFilesStorage
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
