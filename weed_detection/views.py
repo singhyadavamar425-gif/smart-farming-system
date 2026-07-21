@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.conf import settings
 import os
 import numpy as np
+from PIL import Image
 
-# Global variable for model caching (taaki baar-baar load na ho)
+# Global variable for model caching
 _WEED_MODEL = None
 
 # ==========================================
@@ -146,7 +147,7 @@ def predict_weed(request):
     uploaded_file = request.FILES["image"]
 
     # -----------------------------
-    # Save Uploaded Image
+    # Save & Compress Uploaded Image
     # -----------------------------
     upload_dir = os.path.join(
         settings.MEDIA_ROOT,
@@ -159,9 +160,13 @@ def predict_weed(request):
         uploaded_file.name
     )
 
-    with open(file_path, "wb+") as destination:
-        for chunk in uploaded_file.chunks():
-            destination.write(chunk)
+    # Fast processing ke liye image size resize & compress karke save kar rahe hain
+    img_pil = Image.open(uploaded_file)
+    if img_pil.mode in ("RGBA", "P"):
+        img_pil = img_pil.convert("RGB")
+    
+    img_pil_resized = img_pil.resize((224, 224))
+    img_pil_resized.save(file_path, "JPEG", optimize=True, quality=80)
 
     # -----------------------------
     # Lazy Imports for TensorFlow
@@ -198,6 +203,9 @@ def predict_weed(request):
         np.max(prediction) * 100
     )
 
+    # Relative path for front-end rendering
+    image_relative_url = settings.MEDIA_URL + "weed_uploads/" + uploaded_file.name
+
     # ==========================================
     # Confidence Threshold
     # ==========================================
@@ -208,7 +216,7 @@ def predict_weed(request):
             {
                 "error": "❌ This is not a weed.",
                 "confidence": round(confidence, 2),
-                "uploaded_image": settings.MEDIA_URL + "weed_uploads/" + uploaded_file.name
+                "uploaded_image": image_relative_url
             }
         )
 
@@ -241,7 +249,7 @@ def predict_weed(request):
                 "Not Available"
             )
         ],
-        "uploaded_image": settings.MEDIA_URL + "weed_uploads/" + uploaded_file.name
+        "uploaded_image": image_relative_url
     }
 
     return render(
