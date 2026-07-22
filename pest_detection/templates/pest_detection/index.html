@@ -3,542 +3,245 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pest Detection | Smart Farming</title>
 
     <!-- Bootstrap -->
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
-          rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom CSS -->
-
-    <link rel="stylesheet"
-          href="{% static 'pest_detection/css/style.css' %}">
-
+    <link rel="stylesheet" href="{% static 'pest_detection/css/style.css' %}">
 </head>
 
 <body class="bg-light">
 
-<!-- ================= NAVBAR ================= -->
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
-
-    <div class="container">
-
-        <a class="navbar-brand fw-bold"
-           href="/">
-
-            🌱 Smart Farming System
-
-        </a>
-
-        <a href="/"
-           class="btn btn-light">
-
-            <i class="bi bi-house-fill"></i>
-
-            Dashboard
-
-        </a>
-
-    </div>
-
-</nav>
-
-<!-- ================= HERO SECTION ================= -->
-
-<section class="py-5">
-
-    <div class="container">
-
-        <div class="row align-items-center">
-
-            <div class="col-lg-6">
-
-                <h1 class="display-4 fw-bold text-success">
-
-                    🐛 Pest Identification
-
-                </h1>
-
-                <p class="lead mt-4">
-
-                    Upload a pest image and identify the pest species
-                    using the trained EfficientNetB0 Deep Learning Model.
-
-                </p>
-
-                <div class="mt-4">
-
-                    <span class="badge bg-success p-3">
-
-                        EfficientNetB0
-
-                    </span>
-
-                    <span class="badge bg-primary p-3">
-
-                        Deep Learning
-
-                    </span>
-
-                    <span class="badge bg-warning text-dark p-3">
-
-                        Image Classification
-
-                    </span>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-6 text-center">
-
-                <img src="{% static 'pest_detection/images/pest.png' %}"
-
-                     class="img-fluid"
-
-                     width="420">
-
-            </div>
-
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                🌱 Smart Farming System
+            </a>
+            <a href="/" class="btn btn-light">
+                <i class="bi bi-house-fill"></i> Dashboard
+            </a>
         </div>
-
-    </div>
-
-</section>
-<!-- ================= Upload Section ================= -->
-
-<section class="container mb-5">
-
-    <div class="row justify-content-center">
-
-        <div class="col-lg-8">
-
-            <div class="card border-0 shadow-lg rounded-4">
-
-                <div class="card-header bg-success text-white text-center rounded-top-4">
-
-                    <h3 class="mb-0">
-
-                        <i class="bi bi-cloud-arrow-up-fill"></i>
-
-                        Upload Pest Image
-
-                    </h3>
-
-                </div>
-
-                <div class="card-body p-5">
-
-                    <form action="{% url 'predict_pest' %}"
-                          method="POST"
-                          enctype="multipart/form-data">
-
-                        {% csrf_token %}
-
-                        <div class="mb-4">
-
-                            <label class="form-label fw-bold">
-
-                                Select Pest Image
-
-                            </label>
-
-                            <input
-                                type="file"
-                                class="form-control form-control-lg"
-                                name="image"
-                                accept="image/*"
-                                onchange="previewImage(event)"
-                                required>
-
-                        </div>
-
-                        <!-- Image Preview -->
-
-                        <div class="text-center mb-4">
-
-                            <img id="preview"
-
-                                 src="https://via.placeholder.com/450x300?text=Upload+Pest+Image"
-
-                                 class="img-fluid rounded shadow"
-
-                                 style="max-height:320px;
-                                        max-width:100%;
-                                        border:3px solid #198754;">
-
-                        </div>
-
-                        <div class="d-grid">
-
-                            <button
-                                type="submit"
-                                class="btn btn-success btn-lg">
-
-                                <i class="bi bi-search"></i>
-
-                                Detect Pest
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ================= Preview Script ================= -->
-
-<script>
-
-function previewImage(event){
-
-    const reader = new FileReader();
-
-    reader.onload = function(){
-
-        document.getElementById("preview").src = reader.result;
-
-    };
-
-    reader.readAsDataURL(event.target.files[0]);
-
-}
-
-</script>
-<!-- ================= Error Result ================= -->
-
-{% if error %}
-
-<section class="container mb-5">
-
-    <div class="card shadow-lg border-0 rounded-4">
-
-        <div class="card-header bg-danger text-white">
-
-            <h3 class="mb-0">
-
-                ❌ Detection Failed
-
-            </h3>
-
-        </div>
-
-        <div class="card-body text-center">
-
-            {% if uploaded_image %}
-
-            <img src="{{ uploaded_image }}"
-                 class="img-fluid rounded shadow mb-4"
-                 style="max-height:300px;">
-
-            {% endif %}
-
-            <h2 class="text-danger">
-
-                {{ error }}
-
-            </h2>
-
-            {% if confidence %}
-
-            <div class="mt-4">
-
-                <h5>
-
-                    Confidence : {{ confidence }} %
-
-                </h5>
-
-                <div class="progress mt-3"
-                     style="height:25px;">
-
-                    <div class="progress-bar bg-danger"
-
-                         role="progressbar"
-
-                         style="width:{{ confidence }}%;">
-
-                        {{ confidence }}%
-
+    </nav>
+
+    <!-- ================= HERO SECTION ================= -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold text-success">
+                        🐛 Pest Identification
+                    </h1>
+                    <p class="lead mt-4">
+                        Upload a pest image and identify the pest species using the trained EfficientNetB0 Deep Learning
+                        Model.
+                    </p>
+                    <div class="mt-4">
+                        <span class="badge bg-success p-3">EfficientNetB0</span>
+                        <span class="badge bg-primary p-3">Deep Learning</span>
+                        <span class="badge bg-warning text-dark p-3">Image Classification</span>
                     </div>
-
                 </div>
-
+                <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                    <img src="{% static 'pest_detection/images/pest.png' %}" class="img-fluid" width="420" alt="Pest">
+                </div>
             </div>
-
-            {% endif %}
-
         </div>
+    </section>
 
-    </div>
-
-</section>
-
-{% endif %}
-
-
-
-<!-- ================= Prediction Result ================= -->
-
-{% if prediction %}
-
-<section class="container mb-5">
-
-    <div class="card shadow-lg border-0 rounded-4">
-
-        <div class="card-header bg-success text-white">
-
-            <h3 class="mb-0">
-
-                🐛 Pest Detection Result
-
-            </h3>
-
-        </div>
-
-        <div class="card-body">
-
-            <div class="row">
-
-                <!-- Uploaded Image -->
-
-                <div class="col-md-5 text-center">
-
-                    <img src="{{ uploaded_image }}"
-                         class="img-fluid rounded shadow"
-                         style="max-height:350px;">
-
-                </div>
-
-                <!-- Prediction -->
-
-                <div class="col-md-7">
-
-                    <div class="card border-success shadow-sm mb-3">
-
-                        <div class="card-body">
-
-                            <h5 class="text-success">
-
-                                Predicted Pest
-
-                            </h5>
-
-                            <hr>
-
-                            <h2>
-
-                                {{ prediction }}
-
-                            </h2>
-
-                        </div>
-
+    <!-- ================= Upload Section ================= -->
+    <section class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-header bg-success text-white text-center rounded-top-4">
+                        <h3 class="mb-0">
+                            <i class="bi bi-cloud-arrow-up-fill"></i> Upload Pest Image
+                        </h3>
                     </div>
+                    <div class="card-body p-4 p-md-5">
+                        <form id="pestForm" action="{% url 'predict_pest' %}" method="POST"
+                            enctype="multipart/form-data">
+                            {% csrf_token %}
 
-                    <div class="card border-primary shadow-sm">
-
-                        <div class="card-body">
-
-                            <h5 class="text-primary">
-
-                                Confidence Score
-
-                            </h5>
-
-                            <hr>
-
-                            <h2>
-
-                                {{ confidence }} %
-
-                            </h2>
-
-                            <div class="progress mt-3"
-                                 style="height:22px;">
-
-                                <div class="progress-bar bg-success"
-
-                                     role="progressbar"
-
-                                     style="width:{{ confidence }}%;">
-
-                                    {{ confidence }}%
-
-                                </div>
-
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Select Pest Image</label>
+                                <!-- Mobile-friendly file input -->
+                                <input type="file" id="imageInput" class="form-control form-control-lg" name="image"
+                                    accept="image/*" capture="environment" onchange="previewAndCompress(event)"
+                                    required>
                             </div>
 
-                        </div>
+                            <!-- Image Preview -->
+                            <div class="text-center mb-4">
+                                <img id="preview" src="https://via.placeholder.com/450x300?text=Upload+Pest+Image"
+                                    class="img-fluid rounded shadow"
+                                    style="max-height:320px; max-width:100%; border:3px solid #198754;">
+                            </div>
 
+                            <div class="d-grid">
+                                <button type="submit" id="submitBtn" class="btn btn-success btn-lg fw-bold">
+                                    <i class="bi bi-search"></i> Detect Pest
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= Error Result ================= -->
+    {% if error %}
+    <section class="container mb-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">❌ Detection Failed</h3>
+            </div>
+            <div class="card-body text-center">
+                {% if uploaded_image %}
+                <img src="{{ uploaded_image }}" class="img-fluid rounded shadow mb-4" style="max-height:300px;">
+                {% endif %}
+
+                <h2 class="text-danger">{{ error }}</h2>
+
+                {% if confidence %}
+                <div class="mt-4">
+                    <h5>Confidence : {{ confidence }} %</h5>
+                    <div class="progress mt-3" style="height:25px;">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width:{{ confidence }}%;">
+                            {{ confidence }}%
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================= Prediction Result ================= -->
+    {% if prediction %}
+    <section class="container mb-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">🐛 Pest Detection Result</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Uploaded Image -->
+                    <div class="col-md-5 text-center mb-3 mb-md-0">
+                        <img src="{{ uploaded_image }}" class="img-fluid rounded shadow" style="max-height:350px;">
                     </div>
 
+                    <!-- Prediction -->
+                    <div class="col-md-7">
+                        <div class="card border-success shadow-sm mb-3">
+                            <div class="card-body">
+                                <h5 class="text-success">Predicted Pest</h5>
+                                <hr>
+                                <h2>{{ prediction }}</h2>
+                            </div>
+                        </div>
+
+                        <div class="card border-primary shadow-sm">
+                            <div class="card-body">
+                                <h5 class="text-primary">Confidence Score</h5>
+                                <hr>
+                                <h2>{{ confidence }} %</h2>
+                                <div class="progress mt-3" style="height:22px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                        style="width:{{ confidence }}%;">
+                                        {{ confidence }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scientific Name -->
+                <div class="card mt-4 border-info shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">🔬 Scientific Name</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="text-center">{{ scientific_name }}</h4>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="card mt-4 border-warning shadow-sm">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">📖 Pest Description</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">{{ description }}</p>
+                    </div>
+                </div>
+
+                <!-- Recommended Pesticide -->
+                <div class="card mt-4 border-success shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">💊 Recommended Pesticide</h5>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="text-center text-success">{{ pesticide }}</h4>
+                    </div>
+                </div>
+
+                <!-- Control Method -->
+                <div class="card mt-4 border-danger shadow-sm">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">🛡️ Control Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">{{ control }}</p>
+                    </div>
                 </div>
 
             </div>
-                        <!-- ================= Scientific Name ================= -->
-
-            <div class="card mt-4 border-info shadow-sm">
-
-                <div class="card-header bg-info text-white">
-
-                    <h5 class="mb-0">
-
-                        🔬 Scientific Name
-
-                    </h5>
-
-                </div>
-
-                <div class="card-body">
-
-                    <h4 class="text-center">
-
-                        {{ scientific_name }}
-
-                    </h4>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Description ================= -->
-
-            <div class="card mt-4 border-warning shadow-sm">
-
-                <div class="card-header bg-warning">
-
-                    <h5 class="mb-0">
-
-                        📖 Pest Description
-
-                    </h5>
-
-                </div>
-
-                <div class="card-body">
-
-                    <p class="lead">
-
-                        {{ description }}
-
-                    </p>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Recommended Pesticide ================= -->
-
-            <div class="card mt-4 border-success shadow-sm">
-
-                <div class="card-header bg-success text-white">
-
-                    <h5 class="mb-0">
-
-                        💊 Recommended Pesticide
-
-                    </h5>
-
-                </div>
-
-                <div class="card-body">
-
-                    <h4 class="text-center text-success">
-
-                        {{ pesticide }}
-
-                    </h4>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Control Method ================= -->
-
-            <div class="card mt-4 border-danger shadow-sm">
-
-                <div class="card-header bg-danger text-white">
-
-                    <h5 class="mb-0">
-
-                        🛡️ Control Method
-
-                    </h5>
-
-                </div>
-
-                <div class="card-body">
-
-                    <p class="lead">
-
-                        {{ control }}
-
-                    </p>
-
-                </div>
-
-            </div>
-
         </div>
+    </section>
+    {% endif %}
 
-    </div>
+    <!-- ================= Footer ================= -->
+    <footer class="bg-success text-white text-center py-4 mt-5">
+        <div class="container">
+            <h5>🌱 Smart Farming System</h5>
+            <p class="mb-0">Pest Identification using EfficientNetB0 Deep Learning Model</p>
+            <small>© 2026 Smart Farming Project | Developed by Amar Singh Yadav</small>
+        </div>
+    </footer>
 
-</section>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-{% endif %}
+    <!-- ================= Mobile Optimization & Compression Script ================= -->
+    <script>
+        function previewAndCompress(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-<!-- ================= Footer ================= -->
+            // Show instant preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById("preview").src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
-<footer class="bg-success text-white text-center py-4 mt-5">
-
-    <div class="container">
-
-        <h5>
-
-            🌱 Smart Farming System
-
-        </h5>
-
-        <p class="mb-0">
-
-            Pest Identification using EfficientNetB0 Deep Learning Model
-
-        </p>
-
-        <small>
-
-            © 2026 Smart Farming Project | Developed by Amar Singh Yadav
-
-        </small>
-
-    </div>
-
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        // Mobile Form Submit Handling (Spinner & Disable state)
+        document.getElementById('pestForm').addEventListener('submit', function (e) {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing Pest Image...`;
+        });
+    </script>
 
 </body>
 
