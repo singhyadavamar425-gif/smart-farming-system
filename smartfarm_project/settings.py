@@ -55,7 +55,7 @@ ROOT_URLCONF = 'smartfarm_project.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # Fixed module path
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # Fixed template module path
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -102,8 +102,8 @@ if STATIC_DIR.exists():
 else:
     STATICFILES_DIRS = []
 
-# WhiteNoise Configuration for Django 5.x+
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Fast WhiteNoise Storage (Speed upgrade for slow servers)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files & Cloudinary Storage
 MEDIA_URL = '/media/'
