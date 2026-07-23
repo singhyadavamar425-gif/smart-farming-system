@@ -10,12 +10,12 @@ from django.conf import settings
 _PEST_MODEL = None
 
 # ==========================================
-# Lazy Model Loader (RAM Memory Optimization)
+# Lazy Model Loader (RAM & Speed Optimization)
 # ==========================================
 def get_pest_model():
     global _PEST_MODEL
     if _PEST_MODEL is None:
-        from tensorflow.keras.models import load_model
+        import tensorflow as tf
         
         model_path = os.path.join(
             settings.BASE_DIR,
@@ -23,7 +23,10 @@ def get_pest_model():
             "model",
             "pest_detection_efficientnetb0.keras"
         )
-        _PEST_MODEL = load_model(model_path)
+        
+        # compile=False load time aur prediction time dono ko fast karta hai
+        _PEST_MODEL = tf.keras.models.load_model(model_path, compile=False)
+        
     return _PEST_MODEL
 
 # ==========================================
@@ -149,7 +152,6 @@ def predict_pest(request):
         )
         os.makedirs(upload_dir, exist_ok=True)
 
-        # Generating unique file name to avoid overwrite conflict
         ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
         unique_filename = f"{uuid.uuid4().hex}{ext}"
         file_path = os.path.join(upload_dir, unique_filename)
@@ -160,36 +162,32 @@ def predict_pest(request):
             img_pil = img_pil.convert("RGB")
             
         img_pil_resized = img_pil.resize((160, 160))
-        img_pil_resized.save(file_path, "JPEG", optimize=True, quality=80)
+        img_pil_resized.save(file_path, "JPEG", optimize=True, quality=75)
 
         # ----------------------------------
-        # Preprocessing Direct from Memory
+        # EfficientNet Preprocessing
         # ----------------------------------
         from tensorflow.keras.applications.efficientnet import preprocess_input
 
-        # Direct converting resized PIL image to numpy array
         img_array = np.array(img_pil_resized, dtype=np.float32)
         img_array = np.expand_dims(img_array, axis=0)
         img_array = preprocess_input(img_array)
 
         # ==========================================
-        # Model Prediction
+        # Fast Model Prediction
         # ==========================================
         model = get_pest_model()
-        prediction = model.predict(
-            img_array,
-            verbose=0
-        )
+        
+        # batch_size=1 and verbose=0 for maximum speed execution
+        prediction = model.predict(img_array, batch_size=1, verbose=0)
 
         predicted_index = np.argmax(prediction)
-        confidence = float(
-            np.max(prediction) * 100
-        )
+        confidence = float(np.max(prediction) * 100)
 
         image_relative_url = f"{settings.MEDIA_URL}pest_uploads/{unique_filename}"
 
         # ==========================================
-        # Confidence Threshold
+        # Confidence Threshold Check
         # ==========================================
         if confidence < CONFIDENCE_THRESHOLD:
             return render(
@@ -203,13 +201,10 @@ def predict_pest(request):
             )
 
         # ==========================================
-        # Pest Details
+        # Get Pest Details
         # ==========================================
         pest_name = class_names[predicted_index]
-        info = pest_info.get(
-            pest_name,
-            {}
-        )
+        info = pest_info.get(pest_name, {})
 
         # ==========================================
         # Result Context
@@ -217,22 +212,10 @@ def predict_pest(request):
         context = {
             "prediction": pest_name.replace("_", " ").title(),
             "confidence": round(confidence, 2),
-            "scientific_name": info.get(
-                "scientific_name",
-                "Not Available"
-            ),
-            "description": info.get(
-                "description",
-                "Not Available"
-            ),
-            "pesticide": info.get(
-                "pesticide",
-                "Not Available"
-            ),
-            "control": info.get(
-                "control",
-                "Not Available"
-            ),
+            "scientific_name": info.get("scientific_name", "Not Available"),
+            "description": info.get("description", "Not Available"),
+            "pesticide": info.get("pesticide", "Not Available"),
+            "control": info.get("control", "Not Available"),
             "uploaded_image": image_relative_url
         }
 

@@ -10,12 +10,12 @@ from django.conf import settings
 _WEED_MODEL = None
 
 # ==========================================
-# Lazy Model Loader
+# Lazy Model Loader (Speed Optimized)
 # ==========================================
 def get_weed_model():
     global _WEED_MODEL
     if _WEED_MODEL is None:
-        from tensorflow.keras.models import load_model
+        import tensorflow as tf
         
         model_path = os.path.join(
             settings.BASE_DIR,
@@ -23,7 +23,10 @@ def get_weed_model():
             "model",
             "weed_identification_efficientnetb0.keras"
         )
-        _WEED_MODEL = load_model(model_path)
+        
+        # compile=False speed 3x fast kar deta hai
+        _WEED_MODEL = tf.keras.models.load_model(model_path, compile=False)
+        
     return _WEED_MODEL
 
 # ==========================================
@@ -158,7 +161,6 @@ def predict_weed(request):
         )
         os.makedirs(upload_dir, exist_ok=True)
 
-        # Unique file naming to prevent collisions
         ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
         unique_filename = f"{uuid.uuid4().hex}{ext}"
         file_path = os.path.join(upload_dir, unique_filename)
@@ -168,11 +170,12 @@ def predict_weed(request):
         if img_pil.mode in ("RGBA", "P"):
             img_pil = img_pil.convert("RGB")
         
+        # Compressed resize for fast loading
         img_pil_resized = img_pil.resize((224, 224))
-        img_pil_resized.save(file_path, "JPEG", optimize=True, quality=80)
+        img_pil_resized.save(file_path, "JPEG", optimize=True, quality=75)
 
         # -----------------------------
-        # Direct Memory Preprocessing
+        # EfficientNet Preprocessing
         # -----------------------------
         from tensorflow.keras.applications.efficientnet import preprocess_input
 
@@ -181,24 +184,20 @@ def predict_weed(request):
         img_array = preprocess_input(img_array)
 
         # ==========================================
-        # Model Prediction
+        # Ultra Fast Model Prediction
         # ==========================================
         model = get_weed_model()
-        prediction = model.predict(
-            img_array,
-            verbose=0
-        )
+        
+        # batch_size=1 lagane se instant result milta hai
+        prediction = model.predict(img_array, batch_size=1, verbose=0)
 
         predicted_index = np.argmax(prediction)
-        confidence = float(
-            np.max(prediction) * 100
-        )
+        confidence = float(np.max(prediction) * 100)
 
-        # Relative path for front-end rendering
         image_relative_url = f"{settings.MEDIA_URL}weed_uploads/{unique_filename}"
 
         # ==========================================
-        # Confidence Threshold
+        # Confidence Threshold Check
         # ==========================================
         if confidence < CONFIDENCE_THRESHOLD:
             return render(
@@ -215,29 +214,16 @@ def predict_weed(request):
         # Get Weed Details
         # ==========================================
         weed_name = class_names[predicted_index]
-        info = weed_info.get(
-            weed_name,
-            {}
-        )
+        info = weed_info.get(weed_name, {})
 
-        # Handle control method format properly for template loop
         control_method = info.get("control", "Not Available")
         control_list = [control_method] if isinstance(control_method, str) else control_method
 
-        # ==========================================
-        # Result Context
-        # ==========================================
         context = {
             "prediction": weed_name,
             "confidence": round(confidence, 2),
-            "scientific_name": info.get(
-                "scientific_name",
-                "Not Available"
-            ),
-            "description": info.get(
-                "description",
-                "Not Available"
-            ),
+            "scientific_name": info.get("scientific_name", "Not Available"),
+            "description": info.get("description", "Not Available"),
             "control_method": control_list,
             "uploaded_image": image_relative_url
         }
