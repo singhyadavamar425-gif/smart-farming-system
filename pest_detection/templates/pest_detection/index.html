@@ -54,7 +54,7 @@
         </div>
     </section>
 
-    <!-- ================= Upload Section ================= -->
+    <!-- ================= Upload Section (UPDATED) ================= -->
     <section class="container mb-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -69,12 +69,22 @@
                             enctype="multipart/form-data">
                             {% csrf_token %}
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Select Pest Image</label>
-                                <!-- Mobile-friendly file input -->
-                                <input type="file" id="imageInput" class="form-control form-control-lg" name="image"
-                                    accept="image/*" capture="environment" onchange="previewAndCompress(event)"
-                                    required>
+                            <div class="mb-3 text-center">
+                                <label class="form-label fw-bold d-block">Select Pest Image</label>
+                                
+                                <!-- Dual Option Buttons (Gallery & Camera) -->
+                                <div class="d-flex justify-content-center gap-3 my-3">
+                                    <button type="button" class="btn btn-outline-primary px-4 rounded-pill fw-semibold shadow-sm" onclick="openGallery()">
+                                        🖼️ Choose from Gallery
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success px-4 rounded-pill fw-semibold shadow-sm" onclick="openCamera()">
+                                        📷 Take Photo
+                                    </button>
+                                </div>
+
+                                <!-- Hidden File Input -->
+                                <input type="file" id="imageInput" class="d-none" name="image"
+                                    accept="image/*" onchange="previewAndCompress(event)" required>
                             </div>
 
                             <!-- Image Preview -->
@@ -85,7 +95,7 @@
                             </div>
 
                             <div class="d-grid">
-                                <button type="submit" id="submitBtn" class="btn btn-success btn-lg fw-bold">
+                                <button type="submit" id="submitBtn" class="btn btn-success btn-lg fw-bold rounded-pill">
                                     <i class="bi bi-search"></i> Detect Pest
                                 </button>
                             </div>
@@ -221,13 +231,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- ================= Mobile Optimization & Compression Script ================= -->
+    <!-- ================= JavaScript Handlers ================= -->
     <script>
+        const imageInput = document.getElementById('imageInput');
+
+        // Gallery Access Handler
+        function openGallery() {
+            imageInput.removeAttribute('capture');
+            imageInput.click();
+        }
+
+        // Camera Access Handler
+        function openCamera() {
+            imageInput.setAttribute('capture', 'environment');
+            imageInput.click();
+        }
+
+        // Preview Function
         function previewAndCompress(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Show instant preview
             const reader = new FileReader();
             reader.onload = function (e) {
                 document.getElementById("preview").src = e.target.result;
@@ -235,7 +259,7 @@
             reader.readAsDataURL(file);
         }
 
-        // Mobile Form Submit Handling (Spinner & Disable state)
+        // Form Submit Loading State
         document.getElementById('pestForm').addEventListener('submit', function (e) {
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
