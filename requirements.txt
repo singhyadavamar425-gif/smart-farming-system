@@ -41,7 +41,7 @@ mpmath==1.3.0
 namex==0.1.0
 narwhals==2.22.1
 networkx==3.6.1
-numpy==2.5.0
+numpy<2.5.0,>=1.26.0
 nvidia-ml-py==13.610.43
 open_clip_torch==3.3.0
 opencv-python-headless==5.0.0.93
