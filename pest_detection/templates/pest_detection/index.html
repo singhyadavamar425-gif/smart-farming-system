@@ -13,6 +13,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'pest_detection/css/style.css' %}">
+
+    <!-- ================= PWA META TAGS (Mobile App Integration) ================= -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#198754">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SmartFarm">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/628/628283.png">
 </head>
 
 <body class="bg-light">
@@ -54,7 +62,7 @@
         </div>
     </section>
 
-    <!-- ================= Upload Section (UPDATED) ================= -->
+    <!-- ================= Upload Section (Camera + Gallery Supported) ================= -->
     <section class="container mb-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -72,7 +80,7 @@
                             <div class="mb-3 text-center">
                                 <label class="form-label fw-bold d-block">Select Pest Image</label>
                                 
-                                <!-- Dual Option Buttons (Gallery & Camera) -->
+                                <!-- Dual Action Buttons: Gallery & Camera -->
                                 <div class="d-flex justify-content-center gap-3 my-3">
                                     <button type="button" class="btn btn-outline-primary px-4 rounded-pill fw-semibold shadow-sm" onclick="openGallery()">
                                         🖼️ Choose from Gallery
@@ -231,7 +239,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- ================= JavaScript Handlers ================= -->
+    <!-- ================= JavaScript Handlers (PWA & Camera/Gallery) ================= -->
     <script>
         const imageInput = document.getElementById('imageInput');
 
@@ -247,7 +255,7 @@
             imageInput.click();
         }
 
-        // Preview Function
+        // Live Image Preview Functionality
         function previewAndCompress(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -265,6 +273,15 @@
             btn.disabled = true;
             btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing Pest Image...`;
         });
+
+        // Register Service Worker for PWA Mobile App Support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{% static 'serviceworker.js' %}")
+                    .then(reg => console.log('PWA Service Worker Registered!'))
+                    .catch(err => console.log('PWA Registration Failed: ', err));
+            });
+        }
     </script>
 
 </body>
