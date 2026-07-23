@@ -10,7 +10,7 @@ cloudinary==1.45.0
 colorama==0.4.6
 contourpy==1.3.3
 cycler==0.12.1
-Django==5.1.5
+Django<6.0
 django-cloudinary-storage==0.3.0
 filelock==3.29.5
 flatbuffers==25.12.19
@@ -42,7 +42,7 @@ mpmath==1.3.0
 namex==0.1.0
 narwhals==2.22.1
 networkx==3.6.1
-numpy==2.5.0
+numpy
 nvidia-ml-py==13.610.43
 open_clip_torch==3.3.0
 opencv-python-headless==5.0.0.93
