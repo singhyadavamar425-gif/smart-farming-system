@@ -1,8 +1,10 @@
-from django.shortcuts import render
-from django.conf import settings
 import os
+import uuid
 import numpy as np
 from PIL import Image
+
+from django.shortcuts import render
+from django.conf import settings
 
 # Global variable for model caching
 _WEED_MODEL = None
@@ -146,114 +148,111 @@ def predict_weed(request):
 
     uploaded_file = request.FILES["image"]
 
-    # -----------------------------
-    # Save & Compress Uploaded Image
-    # -----------------------------
-    upload_dir = os.path.join(
-        settings.MEDIA_ROOT,
-        "weed_uploads"
-    )
-    os.makedirs(upload_dir, exist_ok=True)
+    try:
+        # -----------------------------
+        # Save & Compress Uploaded Image
+        # -----------------------------
+        upload_dir = os.path.join(
+            settings.MEDIA_ROOT,
+            "weed_uploads"
+        )
+        os.makedirs(upload_dir, exist_ok=True)
 
-    file_path = os.path.join(
-        upload_dir,
-        uploaded_file.name
-    )
+        # Unique file naming to prevent collisions
+        ext = os.path.splitext(uploaded_file.name)[1].lower() or ".jpg"
+        unique_filename = f"{uuid.uuid4().hex}{ext}"
+        file_path = os.path.join(upload_dir, unique_filename)
 
-    # Fast processing ke liye image size resize & compress karke save kar rahe hain
-    img_pil = Image.open(uploaded_file)
-    if img_pil.mode in ("RGBA", "P"):
-        img_pil = img_pil.convert("RGB")
-    
-    img_pil_resized = img_pil.resize((224, 224))
-    img_pil_resized.save(file_path, "JPEG", optimize=True, quality=80)
+        # Fast processing using PIL
+        img_pil = Image.open(uploaded_file)
+        if img_pil.mode in ("RGBA", "P"):
+            img_pil = img_pil.convert("RGB")
+        
+        img_pil_resized = img_pil.resize((224, 224))
+        img_pil_resized.save(file_path, "JPEG", optimize=True, quality=80)
 
-    # -----------------------------
-    # Lazy Imports for TensorFlow
-    # -----------------------------
-    from tensorflow.keras.preprocessing import image
-    from tensorflow.keras.applications.efficientnet import preprocess_input
+        # -----------------------------
+        # Direct Memory Preprocessing
+        # -----------------------------
+        from tensorflow.keras.applications.efficientnet import preprocess_input
 
-    # -----------------------------
-    # Image Preprocessing
-    # -----------------------------
-    img = image.load_img(
-        file_path,
-        target_size=(224, 224)
-    )
+        img_array = np.array(img_pil_resized, dtype=np.float32)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
 
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(
-        img_array,
-        axis=0
-    )
-    img_array = preprocess_input(img_array)
+        # ==========================================
+        # Model Prediction
+        # ==========================================
+        model = get_weed_model()
+        prediction = model.predict(
+            img_array,
+            verbose=0
+        )
 
-    # ==========================================
-    # Model Prediction
-    # ==========================================
-    model = get_weed_model()
-    prediction = model.predict(
-        img_array,
-        verbose=0
-    )
+        predicted_index = np.argmax(prediction)
+        confidence = float(
+            np.max(prediction) * 100
+        )
 
-    predicted_index = np.argmax(prediction)
-    confidence = float(
-        np.max(prediction) * 100
-    )
+        # Relative path for front-end rendering
+        image_relative_url = f"{settings.MEDIA_URL}weed_uploads/{unique_filename}"
 
-    # Relative path for front-end rendering
-    image_relative_url = settings.MEDIA_URL + "weed_uploads/" + uploaded_file.name
+        # ==========================================
+        # Confidence Threshold
+        # ==========================================
+        if confidence < CONFIDENCE_THRESHOLD:
+            return render(
+                request,
+                "weed_detection/index.html",
+                {
+                    "error": "❌ This is not a recognized weed.",
+                    "confidence": round(confidence, 2),
+                    "uploaded_image": image_relative_url
+                }
+            )
 
-    # ==========================================
-    # Confidence Threshold
-    # ==========================================
-    if confidence < CONFIDENCE_THRESHOLD:
+        # ==========================================
+        # Get Weed Details
+        # ==========================================
+        weed_name = class_names[predicted_index]
+        info = weed_info.get(
+            weed_name,
+            {}
+        )
+
+        # Handle control method format properly for template loop
+        control_method = info.get("control", "Not Available")
+        control_list = [control_method] if isinstance(control_method, str) else control_method
+
+        # ==========================================
+        # Result Context
+        # ==========================================
+        context = {
+            "prediction": weed_name,
+            "confidence": round(confidence, 2),
+            "scientific_name": info.get(
+                "scientific_name",
+                "Not Available"
+            ),
+            "description": info.get(
+                "description",
+                "Not Available"
+            ),
+            "control_method": control_list,
+            "uploaded_image": image_relative_url
+        }
+
+        return render(
+            request,
+            "weed_detection/index.html",
+            context
+        )
+
+    except Exception as e:
         return render(
             request,
             "weed_detection/index.html",
             {
-                "error": "❌ This is not a weed.",
-                "confidence": round(confidence, 2),
-                "uploaded_image": image_relative_url
+                "error": "Invalid or corrupted image file uploaded."
             }
         )
-
-    # ==========================================
-    # Get Weed Details
-    # ==========================================
-    weed_name = class_names[predicted_index]
-    info = weed_info.get(
-        weed_name,
-        {}
-    )
-
-    # ==========================================
-    # Result Context
-    # ==========================================
-    context = {
-        "prediction": weed_name,
-        "confidence": round(confidence, 2),
-        "scientific_name": info.get(
-            "scientific_name",
-            "Not Available"
-        ),
-        "description": info.get(
-            "description",
-            "Not Available"
-        ),
-        "control_method": [
-            info.get(
-                "control",
-                "Not Available"
-            )
-        ],
-        "uploaded_image": image_relative_url
-    }
-
-    return render(
-        request,
-        "weed_detection/index.html",
-        context
-    )

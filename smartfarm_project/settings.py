@@ -27,8 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
 
+    # --- Cloudinary Apps (Position strictly maintained) ---
+    'cloudinary_storage',
+    'django.contrib.staticfiles',
+    'cloudinary',
+
+    # Custom Smart Farm Apps
     'dashboard',
     'cropapp',
     'weed_detection',
@@ -41,7 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static & Media serving ke liye
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files serving
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -113,12 +118,25 @@ if STATIC_DIR.exists():
 else:
     STATICFILES_DIRS = []
 
-# Media files (Uploaded User Images)
+# WhiteNoise Storage configuration for static files
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+
+# ==============================================================================
+# Media files & Cloudinary Storage (For uploaded user images)
+# ==============================================================================
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# WhiteNoise Storage configuration
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'eudvqvlh',
+    'API_KEY': '332733826869913',
+    'API_SECRET': 'K2BdKCmyMtoWrqho2cpst2WLk6c',
+}
+
+# Uploaded images will now directly save to Cloudinary
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

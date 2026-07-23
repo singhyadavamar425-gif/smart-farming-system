@@ -38,8 +38,7 @@
                         Weed Identification
                     </h1>
                     <p class="lead mt-4">
-                        Upload a weed image and identify its species using the trained EfficientNetB0 Deep Learning
-                        Model.
+                        Upload a weed image or capture directly using your camera to identify the species using our trained EfficientNetB0 Deep Learning Model.
                     </p>
                     <div class="mt-4">
                         <span class="badge bg-success p-3">EfficientNetB0</span>
@@ -54,37 +53,58 @@
         </div>
     </section>
 
-    <!-- ================= Upload Section ================= -->
+    <!-- ================= Upload / Camera Section ================= -->
     <section class="container mb-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card border-0 shadow-lg rounded-4">
                     <div class="card-header bg-success text-white text-center rounded-top-4">
                         <h3 class="mb-0">
-                            <i class="bi bi-cloud-arrow-up-fill"></i> Upload Weed Image
+                            <i class="bi bi-camera-fill me-2"></i> Capture or Upload Weed Image
                         </h3>
                     </div>
                     <div class="card-body p-4 p-md-5">
-                        <form id="weedForm" action="{% url 'predict_weed' %}" method="POST"
-                            enctype="multipart/form-data">
+                        <form id="weedForm" action="{% url 'predict_weed' %}" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Select Image</label>
-                                <!-- Mobile-friendly file input with camera access -->
-                                <input type="file" id="imageInput" class="form-control form-control-lg" name="image"
-                                    accept="image/*" capture="environment" onchange="previewImage(event)" required>
+                            <!-- Dual Trigger Input Buttons -->
+                            <div class="text-center mb-4">
+                                <label class="form-label fw-bold d-block mb-3 text-secondary">Choose an action below:</label>
+                                
+                                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                    <!-- Direct Camera Trigger Button -->
+                                    <button type="button" class="btn btn-outline-success btn-lg px-4 py-3 shadow-sm rounded-3" onclick="openCamera()">
+                                        <i class="bi bi-camera-fill fs-3 d-block mb-1"></i>
+                                        <strong>Take Photo</strong>
+                                    </button>
+
+                                    <!-- Gallery/File Trigger Button -->
+                                    <button type="button" class="btn btn-outline-primary btn-lg px-4 py-3 shadow-sm rounded-3" onclick="openGallery()">
+                                        <i class="bi bi-images fs-3 d-block mb-1"></i>
+                                        <strong>Choose File</strong>
+                                    </button>
+                                </div>
+
+                                <!-- Hidden Inputs for Camera and File Chooser -->
+                                <input type="file" id="cameraInput" accept="image/*" capture="environment" class="d-none" onchange="handleImageSelect(event)">
+                                <input type="file" id="galleryInput" accept="image/*" class="d-none" onchange="handleImageSelect(event)">
+                                
+                                <!-- Main Form Input sent to Django Backend -->
+                                <input type="file" id="finalImageInput" name="image" class="d-none" required>
                             </div>
 
-                            <!-- Image Preview -->
+                            <!-- Live Image Preview Section -->
                             <div class="text-center mb-4">
-                                <img id="preview" src="{% static 'weed_detection/images/upload.png' %}"
-                                    class="img-fluid rounded shadow"
-                                    style="max-height:320px; max-width:100%; border:3px solid #198754;">
+                                <div class="position-relative d-inline-block">
+                                    <img id="preview" src="{% static 'weed_detection/images/upload.png' %}"
+                                        class="img-fluid rounded shadow-sm border border-2 border-success"
+                                        style="max-height:320px; max-width:100%; object-fit: contain;">
+                                </div>
+                                <p id="fileName" class="text-muted small mt-2 mb-0"></p>
                             </div>
 
                             <div class="d-grid">
-                                <button type="submit" id="submitBtn" class="btn btn-success btn-lg fw-bold">
+                                <button type="submit" id="submitBtn" class="btn btn-success btn-lg fw-bold shadow">
                                     <i class="bi bi-search"></i> Detect Weed
                                 </button>
                             </div>
@@ -214,20 +234,47 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- ================= Mobile Preview & Loading Script ================= -->
+    <!-- ================= Camera & File Input Handler ================= -->
     <script>
-        function previewImage(event) {
-            let reader = new FileReader();
-            reader.onload = function () {
-                document.getElementById("preview").src = reader.result;
-            }
-            if (event.target.files[0]) {
-                reader.readAsDataURL(event.target.files[0]);
-            }
+        function openCamera() {
+            document.getElementById('cameraInput').click();
         }
 
-        // Form Submit Handling (Spinner & Disable state to avoid mobile screen freezing)
+        function openGallery() {
+            document.getElementById('galleryInput').click();
+        }
+
+        function handleImageSelect(event) {
+            const input = event.target;
+            if (!input.files || !input.files[0]) return;
+
+            const file = input.files[0];
+
+            // Assign selected file to the main hidden form input
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            document.getElementById('finalImageInput').files = dataTransfer.files;
+
+            // Show Realtime Preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById("preview").src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Display file name feedback
+            document.getElementById("fileName").innerText = "Selected File: " + file.name;
+        }
+
+        // Form Submission Safeguard & Loading State
         document.getElementById('weedForm').addEventListener('submit', function (e) {
+            const finalInput = document.getElementById('finalImageInput');
+            if (!finalInput.files.length) {
+                e.preventDefault();
+                alert("Please select or capture a weed image first!");
+                return;
+            }
+
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing Weed Image...`;
