@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-&c7s1vfz!a(0hhr8k^!u1_!il*4ybuu^d_l&mzocc^$^y2+dto'
 
-# TEMPORARY TRUE: Error ka exact reason dekhne ke liye (fix hone par False kar dena)
+# TEMPORARY DEBUG=True (Deployment errors exactly dekhne ke liye)
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
 
-    # Cloudinary Storage
+    # Cloudinary Apps (Order maintained for storage override)
     'cloudinary_storage',
     'django.contrib.staticfiles',
     'cloudinary',
@@ -55,7 +55,7 @@ ROOT_URLCONF = 'smartfarm_project.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.DjangoTemplates',
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # Fixed module path
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -102,7 +102,7 @@ if STATIC_DIR.exists():
 else:
     STATICFILES_DIRS = []
 
-# Safe WhiteNoise configuration for Django 5
+# WhiteNoise Configuration for Django 5.x+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files & Cloudinary Storage
